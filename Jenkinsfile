@@ -18,7 +18,7 @@ pipeline {
   }
   tools {
     maven 'localMaven'
-    jdk 'localJdk'
+    // jdk 'localJdk'
   }
   stages {
     stage('Build') {
@@ -63,16 +63,16 @@ pipeline {
     stage('SonarQube Inspection') {
         steps {
            // dir('realworld-cicd-pipeline-project-main/') {
-            //withSonarQubeEnv('SonarQube') { 
+            withSonarQubeEnv('SonarQube') { 
                 withCredentials([string(credentialsId: 'SonarQube-Token', variable: 'SONAR_TOKEN')]) {
                 sh """
                 mvn sonar:sonar \
                 -Dsonar.projectKey=prosperous-cicd-project \
-                -Dsonar.host.url=http://172.31.44.69:9000 \
+                -Dsonar.host.url=http://172.31.53.212:9000 \
                 -Dsonar.login=$SONAR_TOKEN
                 """
                 }
-            //}
+            }
            // }
         }
     }
@@ -92,10 +92,10 @@ pipeline {
            nexusArtifactUploader(
               nexusVersion: 'nexus3',
               protocol: 'http',
-              nexusUrl: '172.31.35.251:8081',
+              nexusUrl: '172.31.56.168:8081',
               groupId: 'webapp',
               version: "${env.BUILD_ID}-${env.BUILD_TIMESTAMP}",
-              repository: 'maven-releases',  //"${NEXUS_REPOSITORY}",
+              repository: 'maven-snapshots',  //"${NEXUS_REPOSITORY}",
               credentialsId: "${NEXUS_CREDENTIAL_ID}",
               artifacts: [
                   [artifactId: 'webapp',
@@ -153,7 +153,7 @@ pipeline {
   post {
     always {
         echo 'Slack Notifications.'
-        slackSend channel: '#prosperous-jenkins-cicd-pipeline', //update and provide your channel name
+        slackSend channel: '#prosperous-cicd-pipeline-001', //update and provide your channel name
         color: COLOR_MAP[currentBuild.currentResult],
         message: "*${currentBuild.currentResult}:* Job Name '${env.JOB_NAME}' build ${env.BUILD_NUMBER} \n Build Timestamp: ${env.BUILD_TIMESTAMP} \n Project Workspace: ${env.WORKSPACE} \n More info at: ${env.BUILD_URL}"
     }
@@ -161,4 +161,3 @@ pipeline {
 
   
 }
-
